@@ -7,7 +7,7 @@ This is a simple tic-tac-toe game programmed for the Novation LaunchPad Mini MK2
 ## How to launch
 
 - Install [Python](https://www.python.org/downloads/)
-- Download `launchpad_tic-tac-toe.exe` from the [Releases](https://github.com/maelchiotti/launchpad-tic-tac-toe) and execute it
+- Download `launchpad_tic-tac-toe.exe` from the [Releases](https://github.com/maelchiotti/launchpad-tic-tac-toe/releases) and execute it
 
 (Alternatively, you can also clone or download this repository and launch `main.py`)
 
