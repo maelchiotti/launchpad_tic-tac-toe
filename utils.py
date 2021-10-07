@@ -47,16 +47,32 @@ Initializes all variables to their default values
 
 
 def initGame(out: midi.Output):
+    global boxes
+    global turn
+    global end
+    global winner
     global play
     global quit
-    global winner
 
+    boxes = ["N", "N", "N", "N", "N", "N", "N", "N", "N"]
+    turn = "R" if(randint(0, 1) == 0) else "G"
+
+    end = False
+    winner = "N"
     play = False
     quit = False
-    winner = "NONE"
 
     setCell(8, 3, GREEN, out)  # play button
     setCell(8, 4, RED, out)  # quit button
+
+    lightOnGrid(out)
+
+
+def lightOnGrid(out: midi.Output):
+    for i in [2, 5]:
+        for j in range(8):
+            setCell(i, j, ORANGE_LIGHT, out)
+            setCell(j, i, ORANGE_LIGHT, out)
 
 
 """
@@ -64,8 +80,136 @@ Lights on LEDs according to the current game state
 """
 
 
-def showGame(out: midi.Output):
-    pass
+def showGame(turnedOn: bool, out: midi.Output):
+    for i in range(len(turnedOn)):
+        if(not turnedOn[i]):
+            if(boxes[i] == "R"):
+                turnOnBox(i, True, out)
+                turnedOn[i] = True
+            elif(boxes[i] == "G"):
+                turnOnBox(i, False, out)
+                turnedOn[i] = True
+
+
+'''
+   0  |  1  |  2
+   -------------
+   3  |  4  |  5
+   -------------
+   6  |  7  |  8
+
+  0 1 2 3 4 5 6 7
+0 * * | * * | * *
+1 * * | * * | * *
+2 ---------------
+3 * * | * * | * *
+4 * * | * * | * *
+5 ---------------
+6 * * | * * | * *
+7 * * | * * | * *
+'''
+
+
+def turnOnBox(boxNumber: int, redPlayer: bool, output: midi.Output):
+    if(boxNumber == 0):
+        setCell(0, 0, RED if(redPlayer) else GREEN, output)
+        setCell(0, 1, RED if(redPlayer) else GREEN, output)
+        setCell(1, 0, RED if(redPlayer) else GREEN, output)
+        setCell(1, 1, RED if(redPlayer) else GREEN, output)
+    elif(boxNumber == 1):
+        setCell(3, 0, RED if(redPlayer) else GREEN, output)
+        setCell(4, 0, RED if(redPlayer) else GREEN, output)
+        setCell(3, 1, RED if(redPlayer) else GREEN, output)
+        setCell(4, 1, RED if(redPlayer) else GREEN, output)
+    elif(boxNumber == 2):
+        setCell(6, 0, RED if(redPlayer) else GREEN, output)
+        setCell(7, 0, RED if(redPlayer) else GREEN, output)
+        setCell(6, 1, RED if(redPlayer) else GREEN, output)
+        setCell(7, 1, RED if(redPlayer) else GREEN, output)
+    elif(boxNumber == 3):
+        setCell(0, 3, RED if(redPlayer) else GREEN, output)
+        setCell(1, 3, RED if(redPlayer) else GREEN, output)
+        setCell(0, 4, RED if(redPlayer) else GREEN, output)
+        setCell(1, 4, RED if(redPlayer) else GREEN, output)
+    elif(boxNumber == 4):
+        setCell(3, 3, RED if(redPlayer) else GREEN, output)
+        setCell(4, 3, RED if(redPlayer) else GREEN, output)
+        setCell(3, 4, RED if(redPlayer) else GREEN, output)
+        setCell(4, 4, RED if(redPlayer) else GREEN, output)
+    elif(boxNumber == 5):
+        setCell(6, 3, RED if(redPlayer) else GREEN, output)
+        setCell(7, 3, RED if(redPlayer) else GREEN, output)
+        setCell(6, 4, RED if(redPlayer) else GREEN, output)
+        setCell(7, 4, RED if(redPlayer) else GREEN, output)
+    elif(boxNumber == 6):
+        setCell(0, 6, RED if(redPlayer) else GREEN, output)
+        setCell(1, 6, RED if(redPlayer) else GREEN, output)
+        setCell(0, 7, RED if(redPlayer) else GREEN, output)
+        setCell(1, 7, RED if(redPlayer) else GREEN, output)
+    elif(boxNumber == 7):
+        setCell(3, 6, RED if(redPlayer) else GREEN, output)
+        setCell(4, 6, RED if(redPlayer) else GREEN, output)
+        setCell(3, 7, RED if(redPlayer) else GREEN, output)
+        setCell(4, 7, RED if(redPlayer) else GREEN, output)
+    elif(boxNumber == 8):
+        setCell(6, 6, RED if(redPlayer) else GREEN, output)
+        setCell(7, 6, RED if(redPlayer) else GREEN, output)
+        setCell(6, 7, RED if(redPlayer) else GREEN, output)
+        setCell(7, 7, RED if(redPlayer) else GREEN, output)
+    else:
+        print("[ERROR] Unknon box was turned on: " + boxNumber)
+        exit(-1)
+
+
+'''
+   0  |  1  |  2
+   -------------
+   3  |  4  |  5
+   -------------
+   6  |  7  |  8
+
+  0 1 2 3 4 5 6 7
+0 * * | * * | * *
+1 * * | * * | * *
+2 ---------------
+3 * * | * * | * *
+4 * * | * * | * *
+5 ---------------
+6 * * | * * | * *
+7 * * | * * | * *
+'''
+
+
+def coordinatesToBox(x: int, y: int):
+    if((x == 0 and y == 0) or (x == 0 and y == 1) or (x == 1 and y == 0) or (x == 1 and y == 1)):
+        return 0
+    elif((x == 3 and y == 0) or (x == 4 and y == 0) or (x == 3 and y == 1) or (x == 4 and y == 1)):
+        return 1
+    elif((x == 6 and y == 0) or (x == 7 and y == 0) or (x == 6 and y == 1) or (x == 7 and y == 1)):
+        return 2
+    elif((x == 0 and y == 3) or (x == 1 and y == 3) or (x == 0 and y == 4) or (x == 1 and y == 4)):
+        return 3
+    elif((x == 3 and y == 3) or (x == 4 and y == 3) or (x == 3 and y == 4) or (x == 4 and y == 4)):
+        return 4
+    elif((x == 6 and y == 3) or (x == 7 and y == 3) or (x == 6 and y == 4) or (x == 7 and y == 4)):
+        return 5
+    elif((x == 0 and y == 6) or (x == 1 and y == 6) or (x == 0 and y == 7) or (x == 1 and y == 7)):
+        return 6
+    elif((x == 3 and y == 6) or (x == 4 and y == 6) or (x == 3 and y == 7) or (x == 4 and y == 7)):
+        return 7
+    elif((x == 6 and y == 6) or (x == 7 and y == 6) or (x == 6 and y == 7) or (x == 7 and y == 7)):
+        return 8
+    else:
+        return -1
+
+
+def boxesFull():
+    global boxes
+
+    for i in range(len(boxes)):
+        if(boxes[i] == "N"):
+            return False
+    return True
 
 
 """
@@ -74,47 +218,54 @@ Thread that monitors player inputs while the game is running
 
 
 def threadInputs(inp: midi.Input, out: midi.Output):
-    global barLeft
-    global barRight
-    global ball
+    global boxes
+    global turn
+    global winner
     global play
     global quit
 
-    while(not quit):
+    while(not end and not quit):
         event = pollEvent(inp)
-        if (event):
-            if (event.down):
-                if(event.x == 8 and event.y == 3):
-                    if(not play):
-                        play = True
-                elif(event.x == 8 and event.y == 4):
-                    quit = True
+        if (event and event.down):
+            if(event.x == 8 and event.y == 3):
+                if(not play):
+                    play = True
+            elif(event.x == 8 and event.y == 4):
+                winner = "Q"
+                quit = True
+            elif(play):
+                boxNumber = coordinatesToBox(event.x, event.y)
+                if(boxNumber != -1 and boxes[boxNumber] == "N"):
+                    boxes[boxNumber] = turn
+                    turn = "R" if(turn == "G") else "G"
 
 
 def threadPrint(out: midi.Output):
     global quit
 
-    while(not quit):
-        showGame(out)
+    turnedOn = [False, False, False, False, False, False, False, False, False]
 
-    if(winner == "RED"):
+    while(not end and not quit):
+        showGame(turnedOn, out)
+
+    if(winner == "R"):
         flashBoard(out, RED, 2, 1)
-    elif(winner == "ORANGE"):
+    elif(winner == "G"):
+        flashBoard(out, GREEN, 2, 1)
+    elif(winner == "E"):
         flashBoard(out, ORANGE, 2, 1)
-    elif(winner == "NONE"):
-        pass
-    else:
-        print("[ERROR] Winner has an unknown value: " + winner)
+    elif(winner != "Q" and winner != "N"):
+        print("[ERROR] Winner has an unknown value: ", winner)
         exit(-1)
 
 
-def threadGame(out: midi.Output, speedDrop: int, speedMin: int):
-    global barLeft
-    global barRight
-    global ball
+def threadGame(out: midi.Output):
+    global boxes
+    global turn
+    global end
+    global winner
     global play
     global quit
-    global winner
 
     # Wait for the player to press the play or exit buttons
     while(not play and not quit):
@@ -122,13 +273,60 @@ def threadGame(out: midi.Output, speedDrop: int, speedMin: int):
 
     setCell(8, 3, OFF, out)  # play button
 
-    while(not quit):
-        pass
+    while(not end and not quit):
+        checkWin()
+
+
+'''
+
+0  |  1  |  2
+-------------
+3  |  4  |  5
+-------------
+6  |  7  |  8
+'''
+
+
+def checkWin():
+    global boxes
+    global end
+    global winner
+
+    if(boxes[0] != "N" and boxes[0] == boxes[1] and boxes[1] == boxes[2]):
+        winner = boxes[0]
+        end = True
+    elif(boxes[3] != "N" and boxes[3] == boxes[4] and boxes[4] == boxes[5]):
+        winner = boxes[3]
+        end = True
+    elif(boxes[6] != "N" and boxes[6] == boxes[7] and boxes[7] == boxes[8]):
+        winner = boxes[6]
+        end = True
+    elif(boxes[0] != "N" and boxes[0] == boxes[3] and boxes[3] == boxes[6]):
+        winner = boxes[0]
+        end = True
+    elif(boxes[1] != "N" and boxes[1] == boxes[4] and boxes[4] == boxes[7]):
+        winner = boxes[1]
+        end = True
+    elif(boxes[2] != "N" and boxes[2] == boxes[5] and boxes[5] == boxes[8]):
+        winner = boxes[2]
+        end = True
+    elif(boxes[0] != "N" and boxes[0] == boxes[4] and boxes[4] == boxes[8]):
+        winner = boxes[0]
+        end = True
+    elif(boxes[2] != "N" and boxes[2] == boxes[4] and boxes[4] == boxes[6]):
+        winner = boxes[2]
+        end = True
+    elif(boxesFull()):
+        winner = "E"
+        end = True
 
 
 '''
 Global variables that need to be accessed by all threads
 '''
+boxes = None
+turn = None
+end = None
+winner = None
 play = None
 quit = None
-winner = None

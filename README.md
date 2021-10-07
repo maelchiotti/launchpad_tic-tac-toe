@@ -15,5 +15,5 @@ This is a simple tic-tac-toe game programmed for the Novation LaunchPad Mini MK2
 
 - Square buttons are used to display the game
 - Round buttons on the right are used to play the game
-  - The green one in the middle launches the game
+  - The green one in the middle launches the gé&aqame
   - The red one in the middle quits the game
