@@ -30,7 +30,7 @@ def main():
         event = pollEvent(input)
         if (event and event.down):
             if(event.x == 8 and event.y == 3):
-
+                # relaunches the program entirely
                 os.execl(sys.executable, sys.executable, *sys.argv)
             elif(event.x == 8 and event.y == 4):
                 exit = True
