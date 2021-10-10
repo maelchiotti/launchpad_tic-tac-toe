@@ -25,18 +25,18 @@ def main():
     setCell(8, 4, RED, output)  # quit button
 
     # Waits for the player to quit or relaunch the game
-    exit = False
-    while(not exit):
+    exitProgram = False
+    while(not exitProgram):
         event = pollEvent(input)
         if (event and event.down):
             if(event.x == 8 and event.y == 3):
                 # relaunches the program entirely
                 os.execl(sys.executable, sys.executable, *sys.argv)
             elif(event.x == 8 and event.y == 4):
-                exit = True
+                exitProgram = True
 
     setAllCells(OFF, output)
-    exit(1)
+    exit()
 
 
 if __name__ == "__main__":

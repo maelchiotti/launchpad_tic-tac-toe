@@ -32,11 +32,13 @@ Turns on and off all LEDs quickly to produce a flashing effect
 
 
 def flashBoard(out: midi.Output, color: Color, delay: int = 0.5, repeat: int = 1):
-    for _ in range(repeat):
+    for i in range(repeat):
         setAllCells(color, out)
         sleep(delay)
         setAllCells(OFF, out)
-        sleep(delay)
+        # avoid calling the sleep() function on the last iteration
+        if(i < repeat - 1):
+            sleep(delay)
 
 
 """
@@ -284,6 +286,9 @@ def threadInputs(inp: midi.Input):
     while(not end and not quit):
         event = pollEvent(inp)
         if (event and event.down):
+
+            print(event.x, ", ", event.y)
+
             if(event.x == 8 and event.y == 3):
                 if(not play):
                     play = True
