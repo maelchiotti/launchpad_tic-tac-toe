@@ -9,7 +9,7 @@ def main():
     initGame(output)
 
     game = Thread(target=threadGame, args=(output, ))
-    inputs = Thread(target=threadInputs, args=(input, output))
+    inputs = Thread(target=threadInputs, args=(input, ))
     print = Thread(target=threadPrint, args=(output, ))
 
     inputs.start()

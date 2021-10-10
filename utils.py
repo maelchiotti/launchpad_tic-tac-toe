@@ -1,11 +1,8 @@
 import pygame.midi as midi
 from launchpadbridge.launchpad import *
-import sys
 from threading import Thread
-from queue import Queue
 from time import sleep
 from random import randint
-from enum import Enum
 
 
 """
@@ -55,7 +52,7 @@ def initGame(out: midi.Output):
     global quit
 
     boxes = ["N", "N", "N", "N", "N", "N", "N", "N", "N"]
-    turn = "R" if(randint(0, 1) == 0) else "G"
+    turn = "G"
 
     end = False
     winner = "N"
@@ -80,18 +77,21 @@ Lights on LEDs according to the current game state
 """
 
 
-def showGame(turnedOn: bool, out: midi.Output):
-    for i in range(len(turnedOn)):
-        if(not turnedOn[i]):
-            if(boxes[i] == "R"):
-                turnOnBox(i, True, out)
-                turnedOn[i] = True
-            elif(boxes[i] == "G"):
-                turnOnBox(i, False, out)
-                turnedOn[i] = True
+def showGame(out: midi.Output):
+    global boxes
+
+    for i in range(len(boxes)):
+        if(boxes[i] == "R"):
+            turnOnBox(out, i, True)
+        elif(boxes[i] == "G"):
+            turnOnBox(out, i, False)
 
 
-'''
+"""
+Turns on the LEDs in the corresponding box
+@param int boxNumber number of the box to light on
+@param bool redPlayer if the LEDs need to be light on red, green otherwise
+
    0  |  1  |  2
    -------------
    3  |  4  |  5
@@ -107,10 +107,10 @@ def showGame(turnedOn: bool, out: midi.Output):
 5 ---------------
 6 * * | * * | * *
 7 * * | * * | * *
-'''
+"""
 
 
-def turnOnBox(boxNumber: int, redPlayer: bool, output: midi.Output):
+def turnOnBox(output: midi.Output, boxNumber: int, redPlayer: bool):
     if(boxNumber == 0):
         setCell(0, 0, RED if(redPlayer) else GREEN, output)
         setCell(0, 1, RED if(redPlayer) else GREEN, output)
@@ -161,7 +161,11 @@ def turnOnBox(boxNumber: int, redPlayer: bool, output: midi.Output):
         exit(-1)
 
 
-'''
+"""
+Returns the box number corresponding to the coordinates
+@param int x x coordinate
+@param int y y coordinate
+
    0  |  1  |  2
    -------------
    3  |  4  |  5
@@ -177,7 +181,7 @@ def turnOnBox(boxNumber: int, redPlayer: bool, output: midi.Output):
 5 ---------------
 6 * * | * * | * *
 7 * * | * * | * *
-'''
+"""
 
 
 def coordinatesToBox(x: int, y: int):
@@ -203,6 +207,11 @@ def coordinatesToBox(x: int, y: int):
         return -1
 
 
+"""
+Checks if all the boxes have been filled by the players, meaning that the game is over
+"""
+
+
 def boxesFull():
     global boxes
 
@@ -213,78 +222,15 @@ def boxesFull():
 
 
 """
-Thread that monitors player inputs while the game is running
-"""
-
-
-def threadInputs(inp: midi.Input, out: midi.Output):
-    global boxes
-    global turn
-    global winner
-    global play
-    global quit
-
-    while(not end and not quit):
-        event = pollEvent(inp)
-        if (event and event.down):
-            if(event.x == 8 and event.y == 3):
-                if(not play):
-                    play = True
-            elif(event.x == 8 and event.y == 4):
-                winner = "Q"
-                quit = True
-            elif(play):
-                boxNumber = coordinatesToBox(event.x, event.y)
-                if(boxNumber != -1 and boxes[boxNumber] == "N"):
-                    boxes[boxNumber] = turn
-                    turn = "R" if(turn == "G") else "G"
-
-
-def threadPrint(out: midi.Output):
-    global quit
-
-    turnedOn = [False, False, False, False, False, False, False, False, False]
-
-    while(not end and not quit):
-        showGame(turnedOn, out)
-
-    if(winner == "R"):
-        flashBoard(out, RED, 2, 1)
-    elif(winner == "G"):
-        flashBoard(out, GREEN, 2, 1)
-    elif(winner == "E"):
-        flashBoard(out, ORANGE, 2, 1)
-    elif(winner != "Q" and winner != "N"):
-        print("[ERROR] Winner has an unknown value: ", winner)
-        exit(-1)
-
-
-def threadGame(out: midi.Output):
-    global boxes
-    global turn
-    global end
-    global winner
-    global play
-    global quit
-
-    # Wait for the player to press the play or exit buttons
-    while(not play and not quit):
-        pass
-
-    setCell(8, 3, OFF, out)  # play button
-
-    while(not end and not quit):
-        checkWin()
-
-
-'''
+Checks if one of the players won the game
+by checking all possibilities, including the board beeing full
 
 0  |  1  |  2
 -------------
 3  |  4  |  5
 -------------
 6  |  7  |  8
-'''
+"""
 
 
 def checkWin():
@@ -321,9 +267,82 @@ def checkWin():
         end = True
 
 
-'''
+"""
+Thread that monitors player inputs while the game is running
+"""
+
+
+def threadInputs(inp: midi.Input):
+    global boxes
+    global turn
+    global winner
+    global play
+    global quit
+
+    while(not end and not quit):
+        event = pollEvent(inp)
+        if (event and event.down):
+            if(event.x == 8 and event.y == 3):
+                if(not play):
+                    play = True
+            elif(event.x == 8 and event.y == 4):
+                winner = "Q"
+                quit = True
+            elif(play):
+                boxNumber = coordinatesToBox(event.x, event.y)
+                if(boxNumber != -1 and boxes[boxNumber] == "N"):
+                    boxes[boxNumber] = turn
+                    turn = "R" if(turn == "G") else "G"
+
+
+"""
+Thread that prints informations while the game is running
+"""
+
+
+def threadPrint(out: midi.Output):
+    global quit
+
+    while(not end and not quit):
+        showGame(out)
+
+    if(winner == "R"):
+        flashBoard(out, RED, 2, 1)
+    elif(winner == "G"):
+        flashBoard(out, GREEN, 2, 1)
+    elif(winner == "E"):
+        flashBoard(out, ORANGE, 2, 1)
+    elif(winner != "Q" and winner != "N"):
+        print("[ERROR] Winner has an unknown value: ", winner)
+        exit(-1)
+
+
+"""
+Thread that handles the game
+"""
+
+
+def threadGame(out: midi.Output):
+    global boxes
+    global turn
+    global end
+    global winner
+    global play
+    global quit
+
+    # Wait for the player to press the play or exit buttons
+    while(not play and not quit):
+        pass
+
+    setCell(8, 3, OFF, out)  # play button
+
+    while(not end and not quit):
+        checkWin()
+
+
+"""
 Global variables that need to be accessed by all threads
-'''
+"""
 boxes = None
 turn = None
 end = None
